@@ -1,4 +1,4 @@
-from rabbit_mq_reader.consumer import main_func
+from rabbit_mq_reader.consumer import main
 
 if __name__ == "__main__":
-    main_func()
+    main()

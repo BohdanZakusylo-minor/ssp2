@@ -7,6 +7,8 @@ type Message struct {
 	Body   string `json:"body"`
 }
 
+// I know that technicaly speaking I need to move the validation to business logic (app), but I wanted to keep the
+// data and data-oriented functions in one place.
 func (m *Message) Validate() error {
 	if m.Author == "" {
 		return errors.New("author field is required")
