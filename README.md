@@ -47,10 +47,10 @@ HTTP Request → HTTP Adapter → Application Service → Port Interface → Rab
 
 3. **View logs:**
    ```bash
-   # View all logs
+   # View all logs (Python consumer logs have timestamps and levels)
    docker compose logs -f
    
-   # View only Python consumer logs (with colored output)
+   # View only Python consumer logs (with timestamps and formatted output)
    docker compose logs -f python-consumer
    
    # View only Go service logs
@@ -106,7 +106,7 @@ curl -X POST http://localhost:8080/messages \
 
 ## 🐍 Python Consumer
 
-The Python consumer service listens to the `southpark_messages` queue and displays messages to the console with **color-coded logs** for better visibility in Docker.
+The Python consumer service listens to the `southpark_messages` queue and displays messages to the console with **enhanced logging** (timestamps, log levels, and formatted output) for better visibility in Docker.
 
 **The consumer runs automatically in Docker Compose**, but you can also run it locally:
 
@@ -118,14 +118,19 @@ RABBITMQ_HOST=localhost python main.py
 
 **Expected log output format:**
 ```
-go-service      | 2025/11/11 21:32:45 Received message from Cartman: Respect my authoritah!
-python-service  | [PYTHON-CONSUMER]  [x] Received: {"author":"Cartman","body":"Respect my authoritah!"}
-
-go-service      | 2025/11/11 21:32:46 Received message from Stan: Oh my God, they killed Kenny!
-python-service  | [PYTHON-CONSUMER]  [x] Received: {"author":"Stan","body":"Oh my God, they killed Kenny!"}
+python-service  | [PYTHON-CONSUMER] [2025-11-11 21:32:45] [INFO] === South Park Messages Consumer Starting ===
+python-service  | [PYTHON-CONSUMER] [2025-11-11 21:32:45] [INFO] Initializing connection to RabbitMQ...
+python-service  | [PYTHON-CONSUMER] [2025-11-11 21:32:45] [INFO] Connecting to RabbitMQ at rabbit-mq:5672...
+python-service  | [PYTHON-CONSUMER] [2025-11-11 21:32:45] [SUCCESS] ✓ Successfully connected to RabbitMQ
+python-service  | [PYTHON-CONSUMER] [2025-11-11 21:32:45] [SUCCESS] ✓ Queue 'southpark_messages' ready
+python-service  | [PYTHON-CONSUMER] [2025-11-11 21:32:45] [INFO] ⏳ Waiting for messages...
+python-service  | 
+python-service  | [PYTHON-CONSUMER] [2025-11-11 21:32:46] [MESSAGE] 📨 NEW MESSAGE from 'Cartman'
+python-service  | [PYTHON-CONSUMER] [2025-11-11 21:32:46] [MESSAGE]    Content: Respect my authoritah!
+python-service  | [PYTHON-CONSUMER] [2025-11-11 21:32:46] [MESSAGE] ────────────────────────────────────────────────────────────
 ```
 
-**Note:** All Python consumer logs are prefixed with `[PYTHON-CONSUMER]` to stand out in Docker logs. Use `docker compose logs -f python-consumer` to view only consumer logs.
+**Note:** All Python consumer logs are prefixed with `[PYTHON-CONSUMER]` and include timestamps with log levels (`[INFO]`, `[SUCCESS]`, `[MESSAGE]`, `[ERROR]`, `[WARNING]`) to stand out in Docker logs. Use `docker compose logs -f python-consumer` to view only consumer logs.
 
 ## 📁 Project Structure
 
@@ -183,7 +188,7 @@ python main.py
 - ✅ RESTful HTTP API
 - ✅ Message validation
 - ✅ Asynchronous message processing via RabbitMQ
-- ✅ Python consumer with JSON parsing
+- ✅ Python consumer with JSON parsing and enhanced logging (timestamps, levels)
 - ✅ Docker Compose orchestration
 - ✅ Error handling for invalid JSON and missing fields
 - ✅ Automated message sending script for testing
@@ -195,9 +200,7 @@ A bash script is provided to automatically send multiple messages to the API. Th
 ### Usage
 
 ```bash
-for linux:
-
-bash test-service.sh
+bash test-services.sh "Stan" "Oh my God, they killed Kenny!"
 ```
 
 **What it does:**
@@ -239,4 +242,14 @@ curl -X POST http://localhost:8080/messages \
 1. Start all services: `docker compose up --build`
 2. In another terminal, watch the Python consumer logs: `docker compose logs -f python-consumer`
 3. In a third terminal, run the script: `./test-services.sh "Cartman" "Respect my authoritah!"`
-4. Watch colorful messages appear in the Python consumer logs!
+4. Watch formatted messages with timestamps appear in the Python consumer logs!
+
+**Expected output in consumer logs:**
+```
+[PYTHON-CONSUMER] [2025-11-11 21:32:46] [MESSAGE] 📨 NEW MESSAGE from 'Cartman'
+[PYTHON-CONSUMER] [2025-11-11 21:32:46] [MESSAGE]    Content: Respect my authoritah! #1
+[PYTHON-CONSUMER] [2025-11-11 21:32:46] [MESSAGE] ────────────────────────────────────────────────────────────
+[PYTHON-CONSUMER] [2025-11-11 21:32:47] [MESSAGE] 📨 NEW MESSAGE from 'Cartman'
+[PYTHON-CONSUMER] [2025-11-11 21:32:47] [MESSAGE]    Content: Respect my authoritah! #2
+[PYTHON-CONSUMER] [2025-11-11 21:32:47] [MESSAGE] ────────────────────────────────────────────────────────────
+```
