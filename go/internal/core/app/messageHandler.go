@@ -26,7 +26,8 @@ func HandleMessages(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Message %s: %s\n", msg.Author, msg.Body)
 
-	services.ConnectToRabbit()
+	msgBytes, _ := json.Marshal(msg)
+	services.ConnectToRabbit(msgBytes)
 
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(map[string]string{"status": "received"})

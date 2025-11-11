@@ -6,26 +6,43 @@ services:
     container_name: rabbit-mq
     environment:
       - hostname=my-rabbit
-      - RABBITMQ_DEFAULT_USER=
-      - RABBITMQ_DEFAULT_PASS=
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
     ports:
       - "15672:15672"
       - "5672:5672"
     volumes:
       - rabbit-mq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  python-consumer:
+    container_name: python-service
+    environment:
+      - RABBITMQ_URL=amqp://user:password@rabbit-mq:5672/
+    build:
+      context: ./python/
+      dockerfile: Dockerfile
+    depends_on:
+      rabbit-mq:
+        condition: service_healthy
 
   go-service:
-    container_name: go
+    container_name: go-service
     environment:
-      - RABBITMQ_URL=amqp://:@rabbit-mq:5672/
+      - RABBITMQ_URL=amqp://user:password@rabbit-mq:5672/
     build:
       context: ./go/
       dockerfile: Dockerfile
-
     ports:
       - "8080:8080"
     depends_on:
-      - rabbit-mq
+      rabbit-mq:
+        condition: service_healthy
 
 volumes:
   rabbit-mq_data:

@@ -7,14 +7,13 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func ConnectToRabbit() {
-	fmt.Println("Rabbit MQ Easy demo!")
+func ConnectToRabbit(msg []byte) {
 	log.Println(" Rabbit MQ Easy demo!")
 
-	conn, err := amqp.Dial("amqp://:@rabbit-mq:5672/")
+	conn, err := amqp.Dial("amqp://user:password@rabbit-mq:5672/")
 	if err != nil {
 		log.Println("Error in connection")
-
+		return
 	}
 
 	//close connection at end of program
@@ -33,12 +32,12 @@ func ConnectToRabbit() {
 	defer chl.Close()
 
 	q, err := chl.QueueDeclare(
-		"TestQueue", // name of the queue
-		false,       // durable
-		false,       // delete when unused
-		false,       // exclusive
-		false,       // no-wait
-		nil,         // arguments
+		"southpark_messages", // name of the queue
+		true,                 // durable
+		false,                // delete when unused
+		false,                // exclusive
+		false,                // no-wait
+		nil,                  // arguments
 	)
 
 	if err != nil {
@@ -49,13 +48,13 @@ func ConnectToRabbit() {
 	fmt.Println(q)
 
 	err = chl.Publish(
-		"",          // exchange
-		"TestQueue", // routing key
-		false,       // mandatory
-		false,       // immediate
+		"",                   // exchange
+		"southpark_messages", // routing key
+		false,                // mandatory
+		false,                // immediate
 		amqp.Publishing{
 			ContentType: "text/plain",
-			Body:        []byte("Hello World"),
+			Body:        msg,
 		},
 	)
 
