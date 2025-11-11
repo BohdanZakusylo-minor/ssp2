@@ -7,7 +7,7 @@ def main_func():
     try:
         credentials = pika.PlainCredentials("user", "password")
         params = pika.ConnectionParameters(
-            host="rabbit-mq",          
+            host="localhost",          
             port=5672,
             virtual_host="/",         
             credentials=credentials,
