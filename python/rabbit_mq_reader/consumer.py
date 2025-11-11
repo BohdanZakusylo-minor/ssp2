@@ -1,13 +1,17 @@
 import pika
 import sys
 
+def log(message):
+    """Print with prefix for better visibility in Docker logs"""
+    print(f"[PYTHON-CONSUMER] {message}", flush=True)
+
 def main_func():
-    print("\n=== South Park Messages ===")
+    log("\n=== South Park Messages ===")
 
     try:
         credentials = pika.PlainCredentials("user", "password")
         params = pika.ConnectionParameters(
-            host="localhost",          
+            host="rabbit-mq",          
             port=5672,
             virtual_host="/",         
             credentials=credentials,
@@ -21,7 +25,7 @@ def main_func():
         channel.queue_declare(queue="southpark_messages", durable=True)
 
         def callback(ch, method, properties, body):
-            print(f" [x] Received: {body.decode()}")
+            log(f" [x] Received: {body.decode()}")
 
         channel.basic_consume(
             queue="southpark_messages",
@@ -29,16 +33,16 @@ def main_func():
             auto_ack=True,   
         )
 
-        print("--Connected to Rabbitmq")
-        print("--Waiting for messages")
+        log("--Connected to Rabbitmq")
+        log("--Waiting for messages")
         channel.start_consuming()
 
     except pika.exceptions.AMQPConnectionError as e:
-        print(f"Connection error: {e}")
+        log(f"Connection error: {e}")
         sys.exit(1)
 
     except KeyboardInterrupt:
-        print("\nInterrupted by user")
+        log("\nInterrupted by user")
         if 'channel' in locals():
             channel.stop_consuming()
         if 'connection' in locals():
@@ -46,6 +50,5 @@ def main_func():
         sys.exit(0)
 
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        log(f"Unexpected error: {e}")
         sys.exit(1)
-
